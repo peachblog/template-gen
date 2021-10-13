@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head th:replace="top(title='模板中心',cssPaths='')">
+    <title>Title</title>
+</head>
+<body>
+
+<textarea id="input_copy" style="opacity: 0;height: 0;width: 0"></textarea>
+<div id="database">
+    <el-row style="margin-top: 50px">
+        <el-col :span="14">
+            <el-form :model="bean" ref="ruleForm" :rules="rules" label-width="100px">
+                <el-row>
+                    <el-form-item label="别名" prop="name">
+                        <el-input size="small" v-model="bean.name" placeholder="请输入别名" />
+                    </el-form-item>
+                    <el-form-item label="文件名" prop="fileName">
+                        <el-input size="small" v-model="bean.fileName" placeholder="请输入文件名" />
+                    </el-form-item>
+                    <el-form-item label="替换文件名" prop="reFileNameName">
+                        <el-input size="small" v-model="bean.reFileNameName" placeholder="替换文件名" />
+                    </el-form-item>
+                    <el-form-item label="文件后缀" prop="suffix">
+                        <el-input size="small" v-model="bean.suffix" placeholder="请输入文件后缀" />
+                    </el-form-item>
+                    <el-form-item label="备注信息" prop="remark">
+                        <el-input  size="small" type="textarea" v-model="bean.remark" placeholder="请输入备注信息" />
+                    </el-form-item>
+                    <el-form-item label="内容" prop="content">
+                        <textarea id="code" name="code" style="display: none"></textarea>
+                    </el-form-item>
+                </el-row>
+            </el-form>
+            <div style="text-align: center">
+                <el-button type="primary" size="mini" @click="submit">{{
+                    bean.id?'修改保存':'新增'}}</el-button>
+                <el-button icon="el-icon-refresh" size="mini" @click="resetBean">重置</el-button>
+            </div>
+        </el-col>
+        <el-col :span="9" style="margin-left: 4vw">
+            <el-collapse v-model="activeNames">
+                <el-collapse-item title="系统字段" name="1">
+                    <el-tooltip class="item" effect="dark" :content="item.remark" placement="top" v-for="item in systems">
+                        <el-button size="mini" @click="copyClick(item.reFiledName)" style="margin: 10px">{{item.reFiledNameName}}</el-button>
+                    </el-tooltip>
+                </el-collapse-item>
+                <el-collapse-item title="模板字段信息" name="0">
+                    <el-tooltip class="item" effect="dark" :content="item.remark" placement="top" v-for="item in arrays">
+                        <el-button size="mini" @click="copyClick(item.reFileName)" style="margin: 10px">{{item.reFileNameName}}</el-button>
+                    </el-tooltip>
+                </el-collapse-item>
+                <el-collapse-item :title="key" :name="key" v-for="(item,key) in customJson">
+                    <el-tooltip class="item" effect="dark" :content="item2.remark" placement="top" v-for="item2 in item">
+                        <el-button size="mini" @click="copyClick(item2.reFiledName)" style="margin: 10px">{{item2.reFiledNameName}}</el-button>
+                    </el-tooltip>
+                </el-collapse-item>
+            </el-collapse>
+        </el-col>
+    </el-row>
+    <el-form :model="queryParams" ref="queryForm" :inline="true" style="margin-top: 50px">
+        <el-form-item label="别名">
+            <el-input
+                    v-model="queryParams.name"
+                    placeholder="请输入别名"
+                    clearable
+                    size="small"
+                    @keyup.enter.native="handleQuery()"
+            />
+        </el-form-item>
+        <el-form-item label="文件名">
+            <el-input
+                    v-model="queryParams.fileName"
+                    placeholder="请输入文件名"
+                    clearable
+                    size="small"
+                    @keyup.enter.native="handleQuery()"
+            />
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery()">搜索</el-button>
+        </el-form-item>
+    </el-form>
+    <el-table
+            v-loading="loading"
+            :data="arrays"
+            border
+    >
+        <el-table-column align="center" prop="fileName" label="文件名" min-width="100"></el-table-column>
+        <el-table-column align="center" prop="reFileNameName" label="替换文件名" min-width="100"></el-table-column>
+        <el-table-column align="center" prop="name" label="别名" min-width="100"></el-table-column>
+        <el-table-column align="center" prop="suffix" label="文件后缀" min-width="100"></el-table-column>
+
+
+        <el-table-column label="操作" align="center" min-width="140" class-name="small-padding fixed-width">
+            <template slot-scope="scope">
+                <el-button
+                        size="mini"
+                        type="text"
+                        icon="el-icon-edit"
+                        @click="handleUpdate(scope.row)"
+                >修改</el-button>
+                <el-button
+                        v-if="scope.row.parentId != 0"
+                        size="mini"
+                        type="text"
+                        icon="el-icon-delete"
+                        @click="handleDelete(scope.row)"
+                >删除</el-button>
+            </template>
+        </el-table-column>
+    </el-table>
+</div>
+</body>
+<script>
+
+
+    var template =  new Vue({
+        el: "#database",
+        data() {
+            return {
+                activeNames: ['1'],
+                arrays: [],
+                defaultArrays: [],
+                loading: true,
+                typeJson: {
+                    0: '正常字段',
+                    1: '循环字段',
+                    2: '判断字段'
+                },
+                ptTypeJson: {
+                    0: '字段判断',
+                    1: 'sql类型判断',
+                    2: '索引判断'
+                },
+                queryParams: {
+                    name: null,
+                    fileName: null
+                },
+                rules: {
+                    fileName: [
+                        { required: true, message: "文件名不能为空", trigger: "blur" }
+                    ],
+                    reFileNameName: [
+                        { required: true, message: "替换文件名不能为空", trigger: "blur" }
+                    ],
+                    content: [
+                        { required: true, message: "内容不能为空", trigger: "blur" }
+                    ],
+                    name: [
+                        { required: true, message: "别名不能为空", trigger: "blur" }
+                    ],
+                    suffix: [
+                        { required: true, message: "文件后缀不能为空", trigger: "blur" }
+                    ]
+                },
+                systems: [],
+                defaultBean: {},
+                customJson: {},
+                editor: null,
+                bean: {
+                    id: null,
+                    fileName: null,
+                    remark: null,
+                    reFileNameName: null,
+                    content: null,
+                    suffix: null,
+                    name: null
+                }
+            };
+        },
+        created(){
+            this.defaultBean = JSON.parse(JSON.stringify(this.bean))
+            this.getData()
+            this.getSystem()
+            this.getCustom()
+        },
+        methods: {
+            getSystem(){
+                get("/api/v1/custom/system/0").then(value => {
+                    this.systems = value
+                })
+            },
+            getCustom(){
+                get("/api/v1/custom/all").then(value => {
+                    this.customJson = {}
+                    value.map(value1=>{
+                        if(this.customJson[value1.classification]){
+                            this.customJson[value1.classification].push(value1)
+                        }else{
+                            this.customJson[value1.classification] = [value1]
+                        }
+                    })
+                })
+            },
+            resetBean(){
+                this.editor.setValue("")
+                this.bean = JSON.parse(JSON.stringify(this.defaultBean))
+                this.$refs["ruleForm"].resetFields();
+            },
+            submit(){
+                this.bean.content = this.editor.getValue()
+                this.$refs["ruleForm"].validate(valid => {
+                    if (valid) {
+                        if (!this.bean.id) {
+                            post("/api/v1/template/save",this.bean).then(value => {
+                                if(value){
+                                    this.$message.success("新增成功")
+                                    this.resetBean()
+                                    this.getData()
+                                }else{
+                                    this.$message.error("改自定义内容已存在")
+                                }
+                            })
+                        } else {
+                            post("/api/v1/template/update",this.bean).then(value => {
+                                if(value){
+                                    this.$message.success("修改成功")
+                                    this.resetBean()
+                                    this.getData()
+                                }else{
+                                    this.$message.error("修改失败")
+                                }
+                            })
+                        }
+                    }
+                });
+            },
+            copyClick(text){
+                copyToClipboard(text)
+            },
+            getData() {
+                this.loading = true
+                get("/api/v1/template/all").then(value => {
+                    this.defaultArrays = value
+                    this.handleQuery()
+                    this.loading = false
+                })
+            },
+            handleUpdate(bean){
+                this.resetBean()
+                this.editor.setValue(bean.content)
+                this.bean = JSON.parse(JSON.stringify(bean))
+            },
+            /** 删除按钮操作 */
+            handleDelete(bean) {
+                this.$confirm('是否确认删除名称为"' + bean.name + '"的数据项?', "警告", {
+                    confirmButtonText: "确定",
+                    cancelButtonText: "取消",
+                    type: "warning"
+                }).then(()=>{
+                    post("/api/v1/template/delete",bean).then(value => {
+                        if(value){
+                            this.$message.success("删除成功")
+                            this.getData()
+                        }else{
+                            this.$message.error("删除失败")
+                        }
+                    })
+                }).catch(() => {});
+            },
+            handleQuery(){
+                this.arrays = this.defaultArrays.filter(value=>{
+                    let flag = true
+                    if(this.queryParams.name){
+                        flag = value.name && value.name.indexOf(this.queryParams.name)>-1
+                    }
+                    if(this.queryParams.fileName){
+                        flag = value.fileName && value.fileName.indexOf(this.queryParams.fileName)>-1
+                    }
+                    return flag
+                })
+            }
+        }
+    })
+
+    window.onload=function (){
+        template.editor = CodeMirror.fromTextArea(document.getElementById("code"), {//定义CodeMirror代码编辑器
+            lineNumbers: true,     // 显示行号
+            indentUnit: 4,         // 缩进单位为4
+            styleActiveLine: true, // 当前行背景高亮
+            matchBrackets: true,   // 括号匹配
+            mode: 'javascript',     // HMTL混合模式
+            lineWrapping: true,    // 自动换行
+            theme: 'ayu-mirage',      // 编辑器主题
+        });
+    }
+</script>
+<style>
+    .CodeMirror-scroll {
+        height: 100%;
+        width: 100%;
+    }
+
+</style>
+</html>

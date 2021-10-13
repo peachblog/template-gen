@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head th:replace="top(title='生成中心',cssPaths='')">
+    <title>Title</title>
+</head>
+<body>
+    <div id="database">
+        <div style="width: 80%;margin-top: 20px;margin-left: 10%;">
+            <el-form ref="ruleForm" label-width="100px">
+                <el-form-item label="数据库选择">
+                    <el-select v-model="value" @change="dataBaseChange()" placeholder="请选择">
+                        <el-option
+                                v-for="(item,index) in databaseArrays"
+                                :key="index"
+                                :label="item.name + '(' + item.ip + ':' + item.post + '/' + item.dataBaseName + ')'"
+                                :value="index">
+                        </el-option>
+                    </el-select>
+                </el-form-item>
+            </el-form>
+        </div>
+
+        <el-row>
+            <el-col :span="10">
+                <el-form ref="ruleForm" label-width="100px">
+                    <el-form-item label="表名模糊搜索">
+                        <el-input
+                                v-model="tableName"
+                                placeholder="请输入表名模糊搜索"
+                                clearable
+                                size="small"
+                                @keyup.enter.native="handleQuery()"
+                                @input="handleQuery()"
+                        />
+                    </el-form-item>
+                </el-form>
+                <el-table
+                        max-height="400"
+                        ref="multipleTable"
+                        :data="tableArrays"
+                        @select="handleSelectionChange"
+                        border>
+                    <el-table-column
+                            type="selection"
+                            width="40">
+                    </el-table-column>
+                    <el-table-column align="center" label="表名" width="200px">
+                        <template slot-scope="scope">
+                              <span>
+                                  {{scope.row.tableName}}
+                              </span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column align="center" label="注释信息">
+                        <template slot-scope="scope">
+                            <el-input size="small" v-model="scope.row.tableComment" placeholder="请输入注释信息" />
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </el-col>
+            <el-col :span="14">
+                <el-form ref="ruleForm" label-width="100px">
+                    <el-form-item label="表信息查看">
+                        <el-select v-model="tableValue" @change="tableChange()" placeholder="请选择表">
+                            <el-option
+                                    v-for="(item,index) in multipleSelection"
+                                    :key="item.tableName"
+                                    :label="item.tableName + '(' + item.tableComment + ')'"
+                                    :value="item.tableName">
+                            </el-option>
+                        </el-select>
+                    </el-form-item>
+                </el-form>
+                <el-table
+                        max-height="400"
+                        :data="tableFiledArrays"
+                        border>
+                    <el-table-column align="center" label="字段名" width="200px">
+                        <template slot-scope="scope">
+                              <span>
+                                  {{scope.row.columnName}}
+                              </span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column align="center" label="字段类型" width="100px">
+                        <template slot-scope="scope">
+                              <span>
+                                  {{scope.row.dataType}}
+                              </span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column align="center" label="别名" width="200px">
+                        <template slot-scope="scope">
+                            <el-input size="small" v-model="scope.row.nickName" placeholder="请输入别名信息" />
+                        </template>
+                    </el-table-column>
+                    <el-table-column align="center" label="注释信息">
+                        <template slot-scope="scope">
+                            <el-input size="small" v-model="scope.row.columnComment" placeholder="请输入注释信息" />
+                        </template>
+                    </el-table-column>
+                    <el-table-column align="center" label="表单" width="160px">
+                        <template slot-scope="scope">
+                            <el-select v-model="scope.row.customFiled" placeholder="请选择表单信息">
+                                <el-option :label="item" :value="item"
+                                           v-for="item in formArray" :key="item"
+                                ></el-option>
+                            </el-select>
+                        </template>
+                    </el-table-column>
+                    <el-table-column align="center" label="查询条件" width="160px">
+                        <template slot-scope="scope">
+                            <el-select v-model="scope.row.queryFiled" placeholder="请选择查询条件">
+                                <el-option :label="item" :value="item"
+                                           v-for="item in queryArray" :key="item"
+                                ></el-option>
+                            </el-select>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </el-col>
+        </el-row>
+        <el-row>
+            <el-col :span="24">
+                <el-table
+                        ref="templateTable"
+                        :data="templateArrays"
+                        border>
+                    <el-table-column align="center" label="模板名" width="200px">
+                        <template slot-scope="scope">
+                              <span>
+                                  {{scope.row.name}}
+                              </span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column align="center" label="生成路径">
+                        <template slot-scope="scope">
+                            <el-input size="small" @input="pathInput(scope.row)" v-model="scope.row.path" placeholder="请输入生成路径" />
+                        </template>
+                    </el-table-column>
+                    <el-table-column align="center" label="包名">
+                        <template slot-scope="scope">
+                            <el-input size="small" v-model="scope.row.packageName" placeholder="请输入包名" />
+                        </template>
+                    </el-table-column>
+                    <el-table-column align="center" label="是否生成" width="100px">
+                        <template slot-scope="scope">
+                            <el-switch
+                                    v-model="scope.row.asGen"
+                                    active-color="#13ce66"
+                                    inactive-color="#ff4949"/>
+                        </template>
+                    </el-table-column>
+                    <el-table-column align="center" label="覆盖已生成" width="100px">
+                        <template slot-scope="scope">
+                            <el-switch
+                                    v-model="scope.row.asPath"
+                                    active-color="#13ce66"
+                                    inactive-color="#ff4949"/>
+                        </template>
+                    </el-table-column>
+                    <el-table-column align="center" label="删除已生成" width="100px">
+                        <template slot-scope="scope">
+                            <el-switch
+                                    v-model="scope.row.asDel"
+                                    active-color="#13ce66"
+                                    inactive-color="#ff4949"/>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </el-col>
+        </el-switch>
+        </el-row>
+        <div style="text-align: center;padding-top: 10px">
+            <el-button type="primary" size="mini" :loading="loading" @click="submit">生成{{loading?"中":""}}</el-button>
+        </div>
+    </div>
+</body>
+<script>
+
+
+    var template =  new Vue({
+        el: "#database",
+        data() {
+            return {
+                loading: false,
+                formArray: fromType,
+                queryArray: queryType,
+                templateArrays: [],
+                tableFiledArrays: [],
+                tableFiledJson: {},
+                tableName: null,
+                multipleSelection: [],
+                tableValue: null,
+                value: 0,
+                databaseArrays: [],
+                tableArrays: [],
+                tableDefaultArrays: []
+            };
+        },
+        created(){
+            this.getDataBaseInfo()
+            this.getTemplateData()
+        },
+        methods: {
+            pathInput(row){
+                if(row.path){
+                    if(row.packageName==null || row.packageName==''){
+                        let paths = row.path.split("\\");
+                        let str = ""
+                        if(paths.length==1){
+                            paths = row.path.split("\\/")
+                        }
+                        let index = 0;
+                        let i=paths.length-1;
+                        for(;i>=0;i--){
+                            if(paths[i]){
+                                index++;
+                                str = paths[i] + "." + str
+                            }
+                            if(index==4){
+                                break
+                            }
+                        }
+                        row.packageName = str.substring(0,str.length-1)
+                    }
+                }
+            },
+            getTemplateData(){
+                get("/api/v1/template/genAll").then(value => {
+                    this.templateArrays = value
+                })
+            },
+            tableChange(){
+                this.tableFiledArrays = this.tableFiledJson[this.tableValue]
+            },
+            dataBaseChange(){
+                this.tableDefaultArrays = []
+                this.multipleSelection = []
+                post("/api/v1/generate/tableAll",this.databaseArrays[this.value]).then(value => {
+                    this.tableDefaultArrays = value
+                    this.handleQuery()
+                })
+            },
+            handleQuery(){
+                this.tableArrays = []
+                this.tableDefaultArrays.map(value=>{
+                    let flag = true
+                    if(this.tableName){
+                        flag = value.tableName && value.tableName.indexOf(this.tableName)>-1
+                    }
+                    if(flag){
+                        this.tableArrays.push(value)
+                    }
+                })
+                this.toggleSelection()
+            },
+            getDataBaseInfo(){
+                get("/api/v1/database/all").then(value => {
+                    this.databaseArrays = value
+                    if(value.length>0){
+                        this.dataBaseChange()
+                    }
+                })
+            },
+            submit(){
+                if(this.multipleSelection.length==0){
+                    alert("请选择生成表")
+                    return false;
+                }
+                this.loading = true
+                let multipleSelection = JSON.parse(JSON.stringify(this.multipleSelection))
+                multipleSelection.map(value=>{
+                    value.tableFiledBeans = this.tableFiledJson[value.tableName]
+                })
+                let bean ={
+                    templateInfos: this.templateArrays,
+                    tableBeans: multipleSelection
+                }
+              post("/api/v1/generate/gen",bean).then(value=>{
+                  this.loading = false
+                    alert("实体生成完成")
+              })
+            },
+            toggleSelection() {
+                let that = this
+                this.multipleSelection.map(row=>{
+                    this.$nextTick().then(function() {
+                        that.$refs.multipleTable.toggleRowSelection(row);
+                    })
+                })
+            },
+            handleSelectionChange(selection,val) {
+                let flag = false
+                selection.map(value=>{
+                    if(value==val){
+                        flag = true
+                    }
+                })
+                if (flag){
+                    if (!this.tableFiledJson.hasOwnProperty(val.tableName)){
+                        get("/api/v1/generate/tableFiled/" + val.tableName).then(value => {
+                            value.map(value1=>{
+                                value1.customFiled = this.formArray[0]
+                            })
+                            this.tableFiledJson[val.tableName] = value
+                            if(this.tableFiledArrays.length==0){
+                                this.tableFiledArrays = value
+                            }
+                        })
+                    }
+                    this.multipleSelection.push(val)
+                }else{
+                    if(this.tableValue==val.tableName){
+                        this.tableFiledArrays = []
+                        this.tableValue = ""
+                    }
+                    this.multipleSelection.splice(this.multipleSelection.indexOf(val),1);
+                }
+            }
+        }
+    })
+</script>
+<style>
+    .el-select{
+        width: 100%;
+    }
+    .el-table__header-wrapper  .el-checkbox{
+        display:none
+    }
+</style>
+</html>

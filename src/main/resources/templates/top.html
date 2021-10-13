@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head th:replace="header::head(${title},${cssPaths})">
+    <title th:text="${title}"></title>
+</head>
+<style>
+    .el-table th.gutter{
+        /*
+        * 解决element-ui 表格篡位的问题 👇
+        */
+        display: table-cell!important;
+    }
+</style>
+<body>
+    <div id="app">
+        <el-menu
+                :default-active="activeIndex2"
+                class="el-menu-demo"
+                mode="horizontal"
+                @select="handleSelect"
+                background-color="#545c64"
+                text-color="#fff"
+                active-text-color="#ffd04b">
+            <a href="/" style="float: left;text-decoration: none"><el-menu-item index="1">生成中心</el-menu-item></a>
+            <a href="/template" style="float: left;text-decoration: none"><el-menu-item index="2">模板中心</el-menu-item></a>
+            <a href="/custom" style="float: left;text-decoration: none"><el-menu-item index="3">字段仓库</el-menu-item></a>
+            <a href="/sqlType" style="float: left;text-decoration: none"><el-menu-item index="4">数据类型</el-menu-item></a>
+            <a href="/database" style="float: left;text-decoration: none"><el-menu-item index="5">数据库</el-menu-item></a>
+        </el-menu>
+    </div>
+</body>
+<script>
+    new Vue({
+        el: "#app",
+        data() {
+            return {
+                pUrl:"http://localhost:8080/",
+                paramJson: {
+                  "/": "1",
+                  "/template": "2", "/custom": "3", "/sqlType": "4", "/database": "5"
+                },
+                activeIndex2: '1'
+            };
+        },
+        created(){
+            console.log(window.location.pathname)
+          this.activeIndex2 = this.paramJson[window.location.pathname]
+        },
+        methods: {
+            handleSelect(key, keyPath) {
+                console.log(key, keyPath);
+            }
+        }
+    })
+</script>
+</html>

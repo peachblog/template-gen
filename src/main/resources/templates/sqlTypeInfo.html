@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head th:replace="top(title='数据类型',cssPaths='')">
+    <title>Title</title>
+</head>
+<body>
+<div id="database">
+    <el-row style="margin-top: 50px">
+        <el-col :span="6">
+            <el-form :model="bean" ref="ruleForm" :rules="rules" label-width="100px">
+                <el-row>
+                    <el-form-item label="数据库类型" prop="sqlType">
+                        <el-input :disabled="bean.id" size="small" v-model="bean.sqlType" placeholder="请输入数据库类型" />
+                    </el-form-item>
+                    <el-form-item label="JAVA类型" prop="javaType">
+                        <el-input  size="small" v-model="bean.javaType" placeholder="请输入JAVA实体类型" />
+                    </el-form-item>
+                    <el-form-item label="引入包">
+                        <el-input  size="small" type="textarea" v-model="bean.pack" placeholder="请输入引入包" />
+                    </el-form-item>
+                </el-row>
+            </el-form>
+                <div style="text-align: center">
+                    <el-button type="primary" size="mini" @click="submit">{{
+                        bean.id?'修改保存':'新增'}}</el-button>
+                    <el-button icon="el-icon-refresh" size="mini" @click="resetBean">重置</el-button>
+                </div>
+        </el-col>
+        <el-col :span="17" style="margin-left: 4vw">
+            <el-table
+                    v-loading="loading"
+                    :data="arrays"
+                    border
+            >
+                <el-table-column align="center" prop="sqlType" label="数据库类型" min-width="100"></el-table-column>
+                <el-table-column align="center" prop="javaType" label="JAVA实体类型" min-width="100"></el-table-column>
+                <el-table-column align="center" prop="pack" label="引入包" min-width="300"></el-table-column>
+
+                <el-table-column label="操作" align="center" min-width="140" class-name="small-padding fixed-width">
+                    <template slot-scope="scope">
+                        <el-button
+                                size="mini"
+                                type="text"
+                                icon="el-icon-edit"
+                                @click="handleUpdate(scope.row)"
+                        >修改</el-button>
+                        <el-button
+                                v-if="scope.row.parentId != 0"
+                                size="mini"
+                                type="text"
+                                icon="el-icon-delete"
+                                @click="handleDelete(scope.row)"
+                        >删除</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </el-col>
+    </el-row>
+</div>
+</body>
+<script>
+
+
+    var template =  new Vue({
+        el: "#database",
+        data() {
+            return {
+                arrays: [],
+                defaultArrays: [],
+                loading: true,
+                queryParams: {
+                    name: null,
+                    dataBaseName: null
+                },
+                rules: {
+                    javaType: [
+                        { required: true, message: "JAVA实体类型不能为空", trigger: "blur" }
+                    ],
+                    sqlType: [
+                        { required: true, message: "数据库类型不能为空", trigger: "blur" }
+                    ]
+                },
+                defaultBean: {},
+                bean: {
+                    id: null,
+                    javaType: null,
+                    sqlType: null,
+                    pack: ''
+                }
+            };
+        },
+        created(){
+            this.defaultBean = JSON.parse(JSON.stringify(this.bean))
+            this.getData()
+        },
+        methods: {
+            resetBean(){
+                this.bean = JSON.parse(JSON.stringify(this.defaultBean))
+                this.$refs["ruleForm"].resetFields();
+            },
+            submit(){
+                this.$refs["ruleForm"].validate(valid => {
+                    if (valid) {
+                        if (!this.bean.id) {
+                            post("/api/v1/sqlType/save",this.bean).then(value => {
+                                if(value){
+                                    this.$message.success("新增成功")
+                                    this.resetBean()
+                                    this.getData()
+                                }else{
+                                    this.$message.error("改类型已存在")
+                                }
+                            })
+                        } else {
+                            post("/api/v1/sqlType/update",this.bean).then(value => {
+                                if(value){
+                                    this.$message.success("修改成功")
+                                    this.resetBean()
+                                    this.getData()
+                                }else{
+                                    this.$message.error("修改失败")
+                                }
+                            })
+                        }
+                    }
+                });
+            },
+            getData() {
+                this.loading = true
+                get("/api/v1/sqlType/all").then(value => {
+                    this.defaultArrays = value
+                    this.handleQuery()
+                    this.loading = false
+                })
+            },
+            handleUpdate(bean){
+                this.resetBean()
+                this.bean = JSON.parse(JSON.stringify(bean))
+            },
+            /** 删除按钮操作 */
+            handleDelete(bean) {
+                this.$confirm('是否确认删除名称为"' + bean.sqlType + '"的数据项?', "警告", {
+                    confirmButtonText: "确定",
+                    cancelButtonText: "取消",
+                    type: "warning"
+                }).then(()=>{
+                    post("/api/v1/sqlType/delete",bean).then(value => {
+                        if(value){
+                            this.$message.success("删除成功")
+                            this.getData()
+                        }else{
+                            this.$message.error("删除失败")
+                        }
+                    })
+                }).catch(() => {});
+            },
+            handleQuery(){
+                this.arrays = this.defaultArrays.filter(value=>{
+                    let flag = true
+                    if(this.queryParams.name){
+                        flag = value.name && value.name.indexOf(this.queryParams.name)>-1
+                    }
+                    if(this.queryParams.dataBaseName){
+                        flag = value.dataBaseName && value.dataBaseName.indexOf(this.queryParams.dataBaseName)>-1
+                    }
+                    return flag
+                })
+            }
+        }
+    })
+</script>
+</html>

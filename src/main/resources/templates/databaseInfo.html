@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head th:replace="top(title='数据库',cssPaths='')">
+    <title>Title</title>
+</head>
+<body>
+    <div id="database">
+        <el-row style="margin-top: 50px">
+            <el-col :span="6">
+                <el-form :model="bean" ref="ruleForm" :rules="rules" label-width="100px">
+                    <el-row>
+                        <el-form-item label="数据库别名" prop="name">
+                            <el-input  size="small" v-model="bean.name" placeholder="请输入数据库别名" />
+                        </el-form-item>
+                        <el-form-item label="IP" prop="ip">
+                            <el-input  size="small" v-model="bean.ip" placeholder="请输入数据库连接地址" />
+                        </el-form-item>
+                        <el-form-item label="端口" prop="post">
+                            <el-input  size="small" v-model="bean.post" placeholder="请输入数据库连接端口" />
+                        </el-form-item>
+                        <el-form-item label="数据库名称" prop="dataBaseName">
+                            <el-input  size="small" v-model="bean.dataBaseName" placeholder="请输入数据库连接名称" />
+                        </el-form-item>
+                        <el-form-item label="用户名" prop="username">
+                            <el-input  size="small" v-model="bean.username" placeholder="请输入数据库连接用户名" />
+                        </el-form-item>
+                        <el-form-item label="密码" prop="password">
+                            <el-input  size="small" v-model="bean.password" placeholder="请输入数据库连接密码" />
+                        </el-form-item>
+                    </el-row>
+                </el-form>
+                <div style="text-align: center">
+                    <el-button type="primary" size="mini" @click="submit">{{
+                        bean.id?'修改保存':'新增'}}</el-button>
+                    <el-button icon="el-icon-refresh" size="mini" @click="resetBean">重置</el-button>
+                </div>
+            </el-col>
+            <el-col :span="17" style="margin-left: 4vw">
+                <el-form :model="queryParams" ref="queryForm" :inline="true">
+                    <el-form-item label="数据库别名">
+                        <el-input
+                                v-model="queryParams.name"
+                                placeholder="请输入数据库别名"
+                                clearable
+                                size="small"
+                                @keyup.enter.native="handleQuery()"
+                        />
+                    </el-form-item>
+                    <el-form-item label="数据库名称">
+                        <el-input
+                                v-model="queryParams.dataBaseName"
+                                placeholder="请输入数据库名称"
+                                clearable
+                                size="small"
+                                @keyup.enter.native="handleQuery()"
+                        />
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery()">搜索</el-button>
+                    </el-form-item>
+                </el-form>
+                <el-table
+                        v-loading="loading"
+                        :data="arrays"
+                        border
+                >
+                    <el-table-column align="center" prop="name" label="数据库别名" min-width="260"></el-table-column>
+                    <el-table-column align="center" prop="ip" label="ip" min-width="120"></el-table-column>
+                    <el-table-column align="center" prop="post" label="端口" min-width="80"></el-table-column>
+                    <el-table-column align="center" prop="dataBaseName" label="数据库" min-width="100"></el-table-column>
+                    <el-table-column align="center" prop="username" label="用户名" min-width="100"></el-table-column>
+                    <el-table-column align="center" prop="password" label="密码" min-width="200"></el-table-column>
+
+                    <el-table-column label="操作" align="center" min-width="140" class-name="small-padding fixed-width">
+                        <template slot-scope="scope">
+                            <el-button
+                                    size="mini"
+                                    type="text"
+                                    icon="el-icon-edit"
+                                    @click="handleUpdate(scope.row)"
+                            >修改</el-button>
+                            <el-button
+                                    v-if="scope.row.parentId != 0"
+                                    size="mini"
+                                    type="text"
+                                    icon="el-icon-delete"
+                                    @click="handleDelete(scope.row)"
+                            >删除</el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </el-col>
+        </el-row>
+    </div>
+</body>
+<script>
+
+
+    var template =  new Vue({
+        el: "#database",
+        data() {
+            return {
+                arrays: [],
+                defaultArrays: [],
+                loading: true,
+                queryParams: {
+                  name: null,
+                  dataBaseName: null
+                },
+                rules: {
+                    name: [
+                        { required: true, message: "数据库别名不能为空", trigger: "blur" }
+                    ],
+                    ip: [
+                        { required: true, message: "数据库连接IP不能为空", trigger: "blur" }
+                    ],
+                    post: [
+                        { required: true, message: "数据库端口不能为空", trigger: "blur" }
+                    ],
+                    dataBaseName: [
+                        { required: true, message: "数据库名称不能为空", trigger: "blur" }
+                    ],
+                    username: [
+                        { required: true, message: "用户名不能为空", trigger: "blur" }
+                    ],
+                    password: [
+                        { required: true, message: "数据库密码不能为空", trigger: "blur" }
+                    ],
+                },
+                defaultBean: {},
+                bean: {
+                    id: null,
+                    name: null,
+                    ip: null,
+                    post: 3306,
+                    username: null,
+                    password: null,
+                    dataBaseName: null
+                }
+            };
+        },
+        created(){
+            this.defaultBean = JSON.parse(JSON.stringify(this.bean))
+            this.getData()
+        },
+        methods: {
+            resetBean(){
+                this.bean = JSON.parse(JSON.stringify(this.defaultBean))
+                this.$refs["ruleForm"].resetFields();
+            },
+            submit(){
+                this.$refs["ruleForm"].validate(valid => {
+                    if (valid) {
+                        if (!this.bean.id) {
+                            post("/api/v1/database/save",this.bean).then(value => {
+                                if(value){
+                                    this.$message.success("新增成功")
+                                    this.resetBean()
+                                    this.getData()
+                                }else{
+                                    this.$message.error("新增失败")
+                                }
+                            })
+                        } else {
+                            post("/api/v1/database/update",this.bean).then(value => {
+                                if(value){
+                                    this.$message.success("修改成功")
+                                    this.resetBean()
+                                    this.getData()
+                                }else{
+                                    this.$message.error("修改失败")
+                                }
+                            })
+                        }
+                    }
+                });
+            },
+            getData() {
+                this.loading = true
+                get("/api/v1/database/all").then(value => {
+                    this.defaultArrays = value
+                    this.handleQuery()
+                    this.loading = false
+                })
+            },
+            handleUpdate(bean){
+                this.resetBean()
+                this.bean = JSON.parse(JSON.stringify(bean))
+            },
+            /** 删除按钮操作 */
+            handleDelete(bean) {
+                this.$confirm('是否确认删除名称为"' + bean.name + '"的数据项?', "警告", {
+                    confirmButtonText: "确定",
+                    cancelButtonText: "取消",
+                    type: "warning"
+                }).then(()=>{
+                    post("/api/v1/database/delete",bean).then(value => {
+                        if(value){
+                            this.$message.success("删除成功")
+                            this.getData()
+                        }else{
+                            this.$message.error("删除失败")
+                        }
+                    })
+                }).catch(() => {});
+            },
+            handleQuery(){
+                this.arrays = this.defaultArrays.filter(value=>{
+                    let flag = true
+                    if(this.queryParams.name){
+                        flag = value.name && value.name.indexOf(this.queryParams.name)>-1
+                    }
+                    if(this.queryParams.dataBaseName){
+                        flag = value.dataBaseName && value.dataBaseName.indexOf(this.queryParams.dataBaseName)>-1
+                    }
+                    return flag
+                })
+            }
+        }
+    })
+</script>
+</html>
