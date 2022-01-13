@@ -6,8 +6,7 @@
 ## 一：使用方式
 
 使用git将代码拉到本地启动，然后访问页面，页面分五个部分：生成中心、模板中心、字段仓库、数据类型、数据库
-
-![image-20220113150057614](C:\Users\future\AppData\Roaming\Typora\typora-user-images\image-20220113150057614.png)
+![img_1.png](img_1.png)
 
 ## 二：数据库配置
 
@@ -25,7 +24,7 @@
 
 **密码：**数据库连接密码
 
-![image-20220113153723659](C:\Users\future\AppData\Roaming\Typora\typora-user-images\image-20220113153723659.png)
+![img.png](img.png)
 
 ## 三：数据库、JAVA实体字段类型匹配
 
@@ -37,7 +36,7 @@
 
 **引入包：**JAVA类型需要引入的包，请填写完整的引入包，多个请跨行再写，例如：import java.math.BigInteger;
 
-![image-20220113153918722](C:\Users\future\AppData\Roaming\Typora\typora-user-images\image-20220113153918722.png)
+![img_2.png](img_2.png)
 
 ## 四：自定义字段配置（类似于变量）
 
@@ -61,7 +60,7 @@
 
 **自定义字段的作用域比较多，它可以在模板中心的文件名上，可以在其他自定义字段的内容中，可以在生成中心生成的路径中，比如我定义${{bootPath}}#代表的就是我项目的所在根路径，${{vueRoot}}#代表的是前端页面的所在根路径**
 
-![image-20220113160312597](C:\Users\future\AppData\Roaming\Typora\typora-user-images\image-20220113160312597.png)
+![img_3.png](img_3.png)
 
 ### 4.1：循环自定义字段讲解
 
@@ -83,14 +82,13 @@ package #{{beanPack}}#;
 
 而其他的变量代表什么大家可以悬浮鼠标进行查看
 
-![image-20220113160647083](C:\Users\future\AppData\Roaming\Typora\typora-user-images\image-20220113160647083.png)
-
+![img_4.png](img_4.png)
 
 
 **排除字段：**我们生成属性名，可能有些公共的实体属性我们不需要生成，那么我们可以在这里进行排除，多个用,隔开，这里填写的字段是数据库字段
 
 **循环内容截取：**我们在循环拼接的时候，可能有时候我们用,隔开字段，那么最后会有一个多余的,，那么我们可以用这种方式进行截取，正数代表前面截取，负数代表后面截取
-![](C:\Users\future\AppData\Roaming\Typora\typora-user-images\image-20220113160337366.png)
+![img_5.png](img_5.png)
 
 ### 4.2：判断自定义字段讲解
 
@@ -112,7 +110,7 @@ package #{{beanPack}}#;
 
 **查询条件判断：**根据生成中心旋转的查询条件类型来判断，相等时加载
 
-![image-20220113162144386](C:\Users\future\AppData\Roaming\Typora\typora-user-images\image-20220113162144386.png)
+![img_6.png](img_6.png)
 
 ## 五：模板中心
 
@@ -132,7 +130,7 @@ package #{{beanPack}}#;
 
 **内容：**模板的内容
 
-![image-20220113162617475](C:\Users\future\AppData\Roaming\Typora\typora-user-images\image-20220113162617475.png)
+![img_7.png](img_7.png)
 
 **注意：模板创建后，旁边有一栏叫做模板信息字段，这个对应的是我们生成模板的变量信息，默认的代表文件名，而带上Pack的就是对应类的包名，需要注意的是这个包名不带;和import，而是直接的包名路径**
 
@@ -149,6 +147,8 @@ package #{{beanPack}}#;
 **注：生成模板，输入对应的生成路径，默认情况下，在输入路径后会对路径进行截取，取\java\后面的路径转换为对应的包名，而不论是包名还是路径都可以填写自定义字段名，以此来进行模块区分**
 
 **建议：在生成的时候建议全部生成，防止某些模板没有生成导致引入实体和包信息不全，默认情况下没有选择覆盖已生成就不会覆盖已经存在的文件**
+
+![img_8.png](img_8.png)
 
 ## 七：生成回调
 
