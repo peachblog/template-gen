@@ -1,5 +1,6 @@
 package com.cloud.gen.utils;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.cloud.gen.bean.CustomInfo;
 import com.cloud.gen.bean.SqlAndJavaTypeInfo;
@@ -10,6 +11,7 @@ import com.cloud.gen.service.SqlAndJavaTypeService;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,9 +42,18 @@ public class GenerateUtils {
         // 先装配bean
         tableBean.getTableFiledBeans().stream().forEach(tableFiledBean -> tableFiledBean.setType(map));
         List<CustomInfo> all = customService.getAll();
-        DataSourceBeanUtils.init(tableBean, ObjectUtil.cloneByStream(all));
+        DataSourceBeanUtils.init(tableBean, copyList(all,CustomInfo.class));
         // 生成
         DataSourceBeanUtils.templateGenerate(templateInfos);
+    }
+
+
+    public <T> List<T> copyList(List<T> list,Class<T> tClass){
+        ArrayList<T> objects = new ArrayList<>(list.size());
+        list.stream().forEach(o -> {
+            objects.add(BeanUtil.toBean(o,tClass));
+        });
+        return objects;
     }
 
 }

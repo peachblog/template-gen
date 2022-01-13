@@ -242,6 +242,11 @@ public class DataSourceBeanUtils {
                 }
                 templateInfo.setFileName(templateInfo.getFileName().replace(customInfo.getReFiledName(),customInfo.getValue()));
             });
+            CustomInfo build2 = CustomInfo.builder().remark(templateInfo.getRemark())
+                    .reFiledName(templateInfo.getReFileNameNamePack())
+                    .value(templateInfo.getPackageName() + "." + templateInfo.getFileName())
+                    .type(0).build();
+            customInfoList.add(build2);
             if (templateInfo.getContent().contains("#{{pack}}#")){
                 if (packets.size()>0){
                     StringBuilder sb = new StringBuilder();

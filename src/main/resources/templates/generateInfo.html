@@ -205,24 +205,10 @@
         methods: {
             pathInput(row){
                 if(row.path){
-                    if(row.packageName==null || row.packageName==''){
-                        let paths = row.path.split("\\");
-                        let str = ""
-                        if(paths.length==1){
-                            paths = row.path.split("\\/")
-                        }
-                        let index = 0;
-                        let i=paths.length-1;
-                        for(;i>=0;i--){
-                            if(paths[i]){
-                                index++;
-                                str = paths[i] + "." + str
-                            }
-                            if(index==4){
-                                break
-                            }
-                        }
-                        row.packageName = str.substring(0,str.length-1)
+                    let index = row.path.indexOf('\\java\\')
+                    if(index!==-1){
+                         let paths = row.path.substring(index + 6).split("\\");
+                         row.packageName = paths.join('.')
                     }
                 }
             },

@@ -48,6 +48,9 @@
                     <el-tooltip class="item" effect="dark" :content="item.remark" placement="top" v-for="item in arrays">
                         <el-button size="mini" @click="copyClick(item.reFileName)" style="margin: 10px">{{item.reFileNameName}}</el-button>
                     </el-tooltip>
+                    <el-tooltip class="item" effect="dark" :content="item.remark + '的包路径含类名不含import'" placement="top" v-for="item in arrays">
+                        <el-button size="mini" @click="copyClick(item.reFileNameNamePack)" style="margin: 10px">{{item.reFileNameName}}Pack</el-button>
+                    </el-tooltip>
                 </el-collapse-item>
                 <el-collapse-item :title="key" :name="key" v-for="(item,key) in customJson">
                     <el-tooltip class="item" effect="dark" :content="item2.remark" placement="top" v-for="item2 in item">

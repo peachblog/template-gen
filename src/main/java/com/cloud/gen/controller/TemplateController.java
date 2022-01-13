@@ -32,10 +32,7 @@ public class TemplateController {
     public List<TemplateInfo> genAll(){
         //现获取当前的路径
         List<TemplateInfo> all = templateService.getAll();
-        String property = System.getProperty("user.dir");
         all.stream().forEach(templateInfo -> {
-            templateInfo.setRootPath(property);
-            templateInfo.setPath(StrUtil.isNotEmpty(templateInfo.getPath())?(templateInfo.getPath().contains(property)?templateInfo.getPath():property + templateInfo.getPath()): templateInfo.getPath());
             templateInfo.setAsPath(false);
             templateInfo.setAsDel(false);
             templateInfo.setAsGen(true);

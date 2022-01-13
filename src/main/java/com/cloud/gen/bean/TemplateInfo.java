@@ -1,6 +1,7 @@
 package com.cloud.gen.bean;
 
 import cn.hutool.core.util.StrUtil;
+import com.cloud.gen.enums.ComposeEnums;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -23,8 +24,6 @@ public class TemplateInfo implements Serializable {
     private String content;
     /**需要导入的包*/
     private String packageName;
-    /**项目根目录*/
-    private String rootPath;
     /**生成存放路径*/
     private String path;
     /**是否删除已生成的*/
@@ -35,12 +34,11 @@ public class TemplateInfo implements Serializable {
     private Boolean asGen = true;
     /**备注*/
     private String remark;
-
-    public String getPath() {
-        return StrUtil.isNotEmpty(path)?path:"";
-    }
-
     public void setPackageName(String packageName) {
         this.packageName = StrUtil.isNotEmpty(packageName)?packageName:"";
+    }
+
+    public String getReFileNameNamePack(){
+        return ComposeEnums.TEMPLATE.before + this.reFileNameName + "Pack" + ComposeEnums.TEMPLATE.after;
     }
 }
